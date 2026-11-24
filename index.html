@@ -1,0 +1,240 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PULSE — Reaction Game</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background: #090b14;
+    color: white;
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.game {
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+}
+
+.logo {
+    font-size: 48px;
+    font-weight: 900;
+    letter-spacing: 8px;
+    color: #55e6ff;
+}
+
+.subtitle {
+    color: #9298aa;
+    margin: 10px 0 35px;
+    letter-spacing: 3px;
+}
+
+.stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 25px;
+}
+
+.stat {
+    background: #171b2b;
+    padding: 15px;
+    border-radius: 15px;
+    width: 45%;
+}
+
+.stat span {
+    display: block;
+    color: #9298aa;
+    font-size: 13px;
+}
+
+.stat strong {
+    display: block;
+    font-size: 25px;
+    margin-top: 7px;
+}
+
+.arena {
+    height: 300px;
+    border-radius: 28px;
+    background: #171b2b;
+    border: 2px solid #292f45;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: background .2s;
+}
+
+.arena h2 {
+    font-size: 27px;
+    line-height: 1.4;
+}
+
+.arena.waiting {
+    background: #b52d43;
+}
+
+.arena.ready {
+    background: #13b978;
+}
+
+.arena.result {
+    background: #2450a0;
+}
+
+button {
+    width: 100%;
+    margin-top: 25px;
+    padding: 19px;
+    border: none;
+    border-radius: 16px;
+    background: #55e6ff;
+    color: #090b14;
+    font-size: 19px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:active {
+    transform: scale(.98);
+}
+
+.hint {
+    color: #9298aa;
+    font-size: 13px;
+    margin-top: 25px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="game">
+
+    <div class="logo">PULSE</div>
+    <div class="subtitle">REACTION GAME</div>
+
+    <div class="stats">
+        <div class="stat">
+            <span>YOUR TIME</span>
+            <strong id="score">---</strong>
+        </div>
+
+        <div class="stat">
+            <span>BEST TIME</span>
+            <strong id="best">---</strong>
+        </div>
+    </div>
+
+    <div class="arena" id="arena">
+        <h2 id="message">
+            ГОТОВ?<br>НАЖМИ START
+        </h2>
+    </div>
+
+    <button id="start">START GAME</button>
+
+    <div class="hint">
+        Нажми на зелёное поле как можно быстрее!
+    </div>
+
+</div>
+
+<script>
+const arena = document.getElementById("arena");
+const message = document.getElementById("message");
+const start = document.getElementById("start");
+const score = document.getElementById("score");
+const best = document.getElementById("best");
+
+let state = "idle";
+let startTime = 0;
+let timer;
+
+let bestTime = localStorage.getItem("pulseBest");
+
+if (bestTime) {
+    best.textContent = bestTime + " ms";
+}
+
+function beginGame() {
+    clearTimeout(timer);
+
+    state = "waiting";
+    score.textContent = "---";
+
+    arena.className = "arena waiting";
+    message.textContent = "ЖДИ ЗЕЛЁНЫЙ СИГНАЛ...";
+
+    start.disabled = true;
+    start.textContent = "WAIT...";
+
+    const delay = Math.random() * 3000 + 1500;
+
+    timer = setTimeout(() => {
+        state = "ready";
+        startTime = performance.now();
+
+        arena.className = "arena ready";
+        message.textContent = "ЖМИ!!!";
+    }, delay);
+}
+
+function tapArena() {
+    if (state === "waiting") {
+        clearTimeout(timer);
+
+        state = "idle";
+        arena.className = "arena";
+        message.textContent = "СЛИШКОМ РАНО!";
+
+        start.disabled = false;
+        start.textContent = "TRY AGAIN";
+        return;
+    }
+
+    if (state === "ready") {
+        const reaction = Math.round(
+            performance.now() - startTime
+        );
+
+        state = "result";
+
+        score.textContent = reaction + " ms";
+
+        arena.className = "arena result";
+        message.textContent = reaction + " ms";
+
+        if (!bestTime || reaction < Number(bestTime)) {
+            bestTime = reaction;
+            localStorage.setItem("pulseBest", bestTime);
+            best.textContent = bestTime + " ms";
+        }
+
+        start.disabled = false;
+        start.textContent = "PLAY AGAIN";
+    }
+}
+
+start.addEventListener("click", beginGame);
+arena.addEventListener("click", tapArena);
+</script>
+
+</body>
+</html>
