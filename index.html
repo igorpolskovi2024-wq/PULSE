@@ -1,240 +1,113 @@
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PULSE — Reaction Game</title>
-
-<style>
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    min-height: 100vh;
-    background: #090b14;
-    color: white;
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.game {
-    width: 100%;
-    max-width: 450px;
-    text-align: center;
-}
-
-.logo {
-    font-size: 48px;
-    font-weight: 900;
-    letter-spacing: 8px;
-    color: #55e6ff;
-}
-
-.subtitle {
-    color: #9298aa;
-    margin: 10px 0 35px;
-    letter-spacing: 3px;
-}
-
-.stats {
-    display: flex;
-    justify-content: space-around;
-    margin-bottom: 25px;
-}
-
-.stat {
-    background: #171b2b;
-    padding: 15px;
-    border-radius: 15px;
-    width: 45%;
-}
-
-.stat span {
-    display: block;
-    color: #9298aa;
-    font-size: 13px;
-}
-
-.stat strong {
-    display: block;
-    font-size: 25px;
-    margin-top: 7px;
-}
-
-.arena {
-    height: 300px;
-    border-radius: 28px;
-    background: #171b2b;
-    border: 2px solid #292f45;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    cursor: pointer;
-    user-select: none;
-    transition: background .2s;
-}
-
-.arena h2 {
-    font-size: 27px;
-    line-height: 1.4;
-}
-
-.arena.waiting {
-    background: #b52d43;
-}
-
-.arena.ready {
-    background: #13b978;
-}
-
-.arena.result {
-    background: #2450a0;
-}
-
-button {
-    width: 100%;
-    margin-top: 25px;
-    padding: 19px;
-    border: none;
-    border-radius: 16px;
-    background: #55e6ff;
-    color: #090b14;
-    font-size: 19px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-button:active {
-    transform: scale(.98);
-}
-
-.hint {
-    color: #9298aa;
-    font-size: 13px;
-    margin-top: 25px;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#101426" />
+  <title>PULSE — поймай импульс!</title>
+  <link rel="stylesheet" href="style(День11).css" />
 </head>
-
 <body>
+  <main class="app">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="PULSE">PULSE<span class="brand-dot">.</span></a>
+      <div class="record">РЕКОРД <strong id="best">0</strong></div>
+    </header>
 
-<div class="game">
+    <section class="intro" id="intro">
+      <div class="eyebrow"><span class="pulse-dot"></span> ARCADE / REACTION</div>
+      <h1>Поймай<br><span>импульс.</span></h1>
+      <p class="intro-copy">Лови бирюзовые цели, собирай комбо и не трогай красные помехи. У тебя 45 секунд!</p>
 
-    <div class="logo">PULSE</div>
-    <div class="subtitle">REACTION GAME</div>
-
-    <div class="stats">
-        <div class="stat">
-            <span>YOUR TIME</span>
-            <strong id="score">---</strong>
+      <div class="howto">
+        <div>
+          <span class="sample target-sample"></span>
+          <span><b>Цель</b><small>+1 очко</small></span>
         </div>
-
-        <div class="stat">
-            <span>BEST TIME</span>
-            <strong id="best">---</strong>
+        <div>
+          <span class="sample bonus-sample"></span>
+          <span><b>Бонус</b><small>+3 очка</small></span>
         </div>
-    </div>
+        <div>
+          <span class="sample danger-sample"></span>
+          <span><b>Помеха</b><small>−1 жизнь</small></span>
+        </div>
+      </div>
 
-    <div class="arena" id="arena">
-        <h2 id="message">
-            ГОТОВ?<br>НАЖМИ START
-        </h2>
-    </div>
+      <button class="primary-btn" id="startBtn">Начать игру <span>↗</span></button>
+      <p class="hint">Мышь или касание · Без установки</p>
+    </section>
 
-    <button id="start">START GAME</button>
+    <section class="game hidden" id="game">
+      <div class="stats">
+        <div class="stat">
+          <span>СЧЁТ</span>
+          <strong id="score">0</strong>
+        </div>
+        <div class="stat timer-stat">
+          <span>ВРЕМЯ</span>
+          <strong><span id="time">45</span><small>с</small></strong>
+        </div>
+        <div class="stat lives-stat">
+          <span>ЖИЗНИ</span>
+          <strong id="lives" aria-label="3 жизни">♥♥♥</strong>
+        </div>
+      </div>
 
-    <div class="hint">
-        Нажми на зелёное поле как можно быстрее!
-    </div>
+      <div class="progress-track">
+        <div id="timeBar"></div>
+      </div>
 
-</div>
+      <div class="arena" id="arena" aria-label="Игровое поле">
+        <div class="arena-label">ARENA <span>01</span></div>
+        <div class="arena-message" id="arenaMessage">Готов?</div>
+      </div>
 
-<script>
-const arena = document.getElementById("arena");
-const message = document.getElementById("message");
-const start = document.getElementById("start");
-const score = document.getElementById("score");
-const best = document.getElementById("best");
+      <div class="game-footer">
+        <div class="combo">
+          <span>КОМБО</span>
+          <strong id="combo">×1</strong>
+        </div>
+        <div class="status" id="status">Нажимай на бирюзовые цели</div>
+        <button class="pause-btn" id="pauseBtn" aria-label="Пауза">Ⅱ</button>
+      </div>
+    </section>
 
-let state = "idle";
-let startTime = 0;
-let timer;
+    <section class="overlay hidden" id="pauseOverlay">
+      <div class="overlay-card">
+        <div class="eyebrow">PAUSED</div>
+        <h2>Пауза</h2>
+        <p>Передохни. Импульс подождёт.</p>
+        <button class="primary-btn" id="resumeBtn">Продолжить <span>▶</span></button>
+        <button class="secondary-btn" id="pauseRestartBtn">Начать заново</button>
+      </div>
+    </section>
 
-let bestTime = localStorage.getItem("pulseBest");
+    <section class="result hidden" id="result">
+      <div class="eyebrow" id="resultEyebrow">РАУНД ЗАВЕРШЁН</div>
+      <h2 id="resultTitle">Отличный импульс!</h2>
 
-if (bestTime) {
-    best.textContent = bestTime + " ms";
-}
+      <div class="result-score">
+        <span>ТВОЙ СЧЁТ</span>
+        <strong id="finalScore">0</strong>
+      </div>
 
-function beginGame() {
-    clearTimeout(timer);
+      <p id="resultText">Новый рекорд!</p>
+      <button class="primary-btn" id="againBtn">Играть снова <span>↗</span></button>
+      <button class="secondary-btn" id="homeBtn">На главный экран</button>
 
-    state = "waiting";
-    score.textContent = "---";
+      <div class="history" id="historyWrap">
+        <span>ПОСЛЕДНИЕ ДЕЙСТВИЯ</span>
+        <ul id="history"></ul>
+      </div>
+    </section>
 
-    arena.className = "arena waiting";
-    message.textContent = "ЖДИ ЗЕЛЁНЫЙ СИГНАЛ...";
+    <footer class="page-footer">
+      <span>SMALL GAME. BIG REFLEX.</span>
+      <span>© PULSE 2026</span>
+    </footer>
+  </main>
 
-    start.disabled = true;
-    start.textContent = "WAIT...";
-
-    const delay = Math.random() * 3000 + 1500;
-
-    timer = setTimeout(() => {
-        state = "ready";
-        startTime = performance.now();
-
-        arena.className = "arena ready";
-        message.textContent = "ЖМИ!!!";
-    }, delay);
-}
-
-function tapArena() {
-    if (state === "waiting") {
-        clearTimeout(timer);
-
-        state = "idle";
-        arena.className = "arena";
-        message.textContent = "СЛИШКОМ РАНО!";
-
-        start.disabled = false;
-        start.textContent = "TRY AGAIN";
-        return;
-    }
-
-    if (state === "ready") {
-        const reaction = Math.round(
-            performance.now() - startTime
-        );
-
-        state = "result";
-
-        score.textContent = reaction + " ms";
-
-        arena.className = "arena result";
-        message.textContent = reaction + " ms";
-
-        if (!bestTime || reaction < Number(bestTime)) {
-            bestTime = reaction;
-            localStorage.setItem("pulseBest", bestTime);
-            best.textContent = bestTime + " ms";
-        }
-
-        start.disabled = false;
-        start.textContent = "PLAY AGAIN";
-    }
-}
-
-start.addEventListener("click", beginGame);
-arena.addEventListener("click", tapArena);
-</script>
-
+  <script src="script(день11).js"></script>
 </body>
 </html>
